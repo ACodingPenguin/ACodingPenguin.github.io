@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>溝通與安全</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: #121212;
+    color: #e5e7eb;
+    height: 100vh;
+    margin: 0;
+    display: flex; justify-content: center; align-items: center;
+    transition: background 1.5s ease;
+  }
+  #app {
+    background-color: #1f2937;
+    border-radius: 1.25rem;
+    width: 360px; height: 720px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  header {
+    padding: 1.5rem 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid #374151;
+  }
+  header h1 {
+    font-weight: 800; font-size: 1.75rem; letter-spacing: 0.05em;
+  }
+  main {
+    flex: 1; overflow-y: auto; padding: 1rem 1.5rem 1.5rem;
+  }
+  button:focus {
+    outline-offset: 3px; outline-color: #2563eb;
+    outline-style: solid; outline-width: 2px;
+  }
+  main::-webkit-scrollbar {
+    width: 6px;
+  }
+  main::-webkit-scrollbar-thumb {
+    background-color: #4b5563; border-radius: 3px;
+  }
+  #hintTextDisplay {
+    font-weight: 700; font-size: 3em; text-align: center;
+    user-select: none; color: #fef3c7; text-shadow: 0 0 5px rgba(255,215,0,0.7);
+    min-height: 1.8em;
+  }
+  #sttTextDisplay {
+    font-weight: 600; font-size: 1.4em; text-align: center;
+    color: #93c5fd; font-style: italic; user-select: none;
+    min-height: 1.5em; margin-top: 0.25rem;
+  }
+  #sharedLocationLink a {
+    word-break: break-all;
+  }
+  #btnSendLocationSms {
+    margin-top: 0.8rem;
+    width: 100%;
+    background-color: #10b981;
+    color: white;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  #btnSendLocationSms:hover {
+    background-color: #059669;
+  }
+</style>
+</head>
+<body>
+  <div id="app" role="main" aria-label="溝通與安全主介面">
+    <header>
+      <h1>溝通與安全</h1>
+    </header>
+    <main>
+      <!-- Main menu -->
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-center">選擇功能</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <button id="btnSoundDiffuser" class="bg-indigo-600 hover:bg-indigo-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="聲音識別功能">聲音識別</button>
+          <button id="btnAlertSystem" class="bg-red-600 hover:bg-red-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="警報系統">警報系統</button>
+          <button id="btnEmergencyText" class="bg-yellow-600 hover:bg-yellow-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="緊急訊息發送">緊急訊息</button>
+          <button id="btnShareLocation" class="bg-green-600 hover:bg-green-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-green-500" aria-label="分享位置">分享位置</button>
+        </div>
+      </section>
+
+      <!-- Sound Diffuser Section -->
+      <section id="sectionSoundDiffuser" class="hidden">
+        <h2 class="text-lg font-semibold mb-3 text-center">聲音識別</h2>
+        <button id="startRecognition"
+          class="bg-indigo-500 hover:bg-indigo-600 rounded-lg w-full py-4 font-bold text-white mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          aria-pressed="false" aria-label="開始/停止聲音識別">
+          開始聲音識別
+        </button>
+
+        <div>
+          <div><strong>音域狀態提示:</strong></div>
+          <div id="hintTextDisplay">請按下開始</div>
+        </div>
+
+        <div class="mt-1">
+          <div><strong>語音辨識結果 (STT):</strong></div>
+          <div id="sttTextDisplay"></div>
+        </div>
+
+        <div class="mt-3 text-center text-sm select-none" aria-live="polite" aria-atomic="true">
+          <div>目前背景色:</div>
+          <div id="colorDisplay" class="mt-1 font-mono select-text">#000000</div>
+        </div>
+
+        <button id="btnBackFromSound" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
+      </section>
+
+      <!-- Alert System Section -->
+      <section id="sectionAlertSystem" class="hidden flex flex-col">
+        <h2 class="text-lg font-semibold mb-3 text-center">警報系統</h2>
+        <p class="text-center mb-4 text-gray-300">按下按鈕觸發緊急警報聲音</p>
+        <button id="btnTestEmergencyAlert" class="w-full bg-red-700 hover:bg-red-800 rounded-lg py-3 font-semibold mb-3 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="測試緊急警報">觸發警報聲</button>
+        <button id="btnBackFromAlert" class="w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
+      </section>
+
+      <!-- Emergency Text Section -->
+      <section id="sectionEmergencyText" class="hidden flex flex-col">
+        <h2 class="text-lg font-semibold mb-3 text-center">緊急訊息發送</h2>
+        <input id="emergencyEmailInput" type="text" placeholder="接收者電話號碼或電子郵件"
+          class="w-full rounded-md bg-gray-600 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3" aria-label="接收者電話或电子邮件" />
+        <textarea id="emergencyMessageInput" rows="6" placeholder="請輸入緊急訊息..."
+          class="w-full rounded-md bg-gray-700 p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none mb-4"></textarea>
+        <button id="btnSendEmergencyText" class="w-full bg-yellow-600 hover:bg-yellow-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400 mb-2" aria-label="發送緊急訊息">發送緊急訊息</button>
+        <div id="emergencyEmailStatus" class="text-center text-sm text-green-400 min-h-[1.5rem]" aria-live="polite" aria-atomic="true"></div>
+        <button id="btnBackFromEmergency" class="mt-auto w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
+      </section>
+
+      <!-- Share Location Section -->
+      <section id="sectionShareLocation" class="hidden">
+        <h2 class="text-lg font-semibold mb-3 text-center">分享位置</h2>
+        <p class="mb-4 text-center text-gray-300">按下按鈕以分享您當前的位置</p>
+        <button id="btnShareCurrentLocation" class="w-full bg-green-600 hover:bg-green-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-green-400" aria-label="分享當前位置">分享位置</button>
+        <div id="sharedLocationLink" class="mt-4 text-sm text-center text-cyan-400 break-words"></div>
+        <button id="btnSendLocationSms" class="hidden" aria-label="以短信發送位置">以短信發送位置</button>
+        <button id="btnBackFromShareLocation" class="mt-6 w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Section switching helper
+    const sections = {
+      soundDiffuser: document.getElementById('sectionSoundDiffuser'),
+      alertSystem: document.getElementById('sectionAlertSystem'),
+      emergencyText: document.getElementById('sectionEmergencyText'),
+      shareLocation: document.getElementById('sectionShareLocation'),
+    };
+
+    function showSection(key) {
+      if (!key) {
+        for (const k in sections) sections[k].classList.add('hidden');
+        document.querySelector('section.mb-8').classList.remove('hidden');
+      } else {
+        document.querySelector('section.mb-8').classList.add('hidden');
+        for (const k in sections) {
+          if (k === key) sections[k].classList.remove('hidden');
+          else sections[k].classList.add('hidden');
+        }
+      }
+    }
+    showSection(null);
+
+    // Navigation buttons
+    document.getElementById('btnSoundDiffuser').addEventListener('click', () => showSection('soundDiffuser'));
+    document.getElementById('btnAlertSystem').addEventListener('click', () => showSection('alertSystem'));
+    document.getElementById('btnEmergencyText').addEventListener('click', () => showSection('emergencyText'));
+    document.getElementById('btnShareLocation').addEventListener('click', () => showSection('shareLocation'));
+
+    // Back buttons
+    document.getElementById('btnBackFromSound').addEventListener('click', () => showSection(null));
+    document.getElementById('btnBackFromAlert').addEventListener('click', () => showSection(null));
+    document.getElementById('btnBackFromEmergency').addEventListener('click', () => {
+      clearEmergencyInput();
+      showSection(null);
+    });
+    document.getElementById('btnBackFromShareLocation').addEventListener('click', () => {
+      showSection(null);
+      document.getElementById('btnSendLocationSms').classList.add('hidden');
+      document.getElementById('sharedLocationLink').textContent = '';
+    });
+
+    // ========== Sound Diffuser ==========
+
+    const startRecognitionButton = document.getElementById('startRecognition');
+    const colorDisplay = document.getElementById('colorDisplay');
+    const hintTextDisplay = document.getElementById('hintTextDisplay');
+    const sttTextDisplay = document.getElementById('sttTextDisplay');
+
+    let audioContext, analyser, microphone, javascriptNode;
+    let speechRecognition;
+    let recognitionActive = false;
+    let isSpeechRecognitionActive = false;
+
+    const uiUpdateThrottleMs_BG = 80;
+    const uiUpdateThrottleMs_Text = 400;
+    let lastColorUpdate = 0;
+    let lastTextUpdate = 0;
+
+    let lastSttText = '';
+    let sttDebounceTimer = null;
+
+    let smoothX = 1, smoothY = 0;
+    let smoothSaturation = 0, smoothLightness = 0;
+    const smoothingAlpha = 0.05;
+
+    function lightenHsl(h, s, l, amount = 20) {
+      return `hsl(${h}, ${s}%, ${Math.min(l + amount, 90)}%)`;
+    }
+
+    async function stopRecognition() {
+      if (speechRecognition && isSpeechRecognitionActive) {
+        speechRecognition.onresult = null;
+        speechRecognition.onerror = null;
+        speechRecognition.onend = null;
+        try { speechRecognition.stop(); } catch {}
+        isSpeechRecognitionActive = false;
+        speechRecognition = null;
+      }
+      if (javascriptNode) {
+        javascriptNode.disconnect();
+        javascriptNode.onaudioprocess = null;
+        javascriptNode = null;
+      }
+      if (analyser) {
+        analyser.disconnect();
+        analyser = null;
+      }
+      if (microphone) {
+        microphone.disconnect();
+        microphone = null;
+      }
+      if (audioContext && audioContext.state !== 'closed') {
+        await audioContext.close();
+        audioContext = null;
+      }
+
+      recognitionActive = false;
+
+      startRecognitionButton.disabled = false;
+      startRecognitionButton.textContent = '開始聲音識別';
+
+      hintTextDisplay.textContent = '請按下開始';
+      sttTextDisplay.textContent = '';
+      colorDisplay.textContent = '#000000';
+      document.body.style.background = '#121212';
+
+      smoothX = 1;
+      smoothY = 0;
+      smoothSaturation = 0;
+      smoothLightness = 0;
+    }
+
+    async function startRecognition() {
+      if (recognitionActive) return;
+
+      startRecognitionButton.disabled = true;
+
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        microphone = audioContext.createMediaStreamSource(audioStream);
+
+        analyser = audioContext.createAnalyser();
+        analyser.smoothingTimeConstant = 0.3;
+        analyser.fftSize = 1024;
+
+        javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+        microphone.connect(analyser);
+        analyser.connect(javascriptNode);
+        javascriptNode.connect(audioContext.destination);
+
+        recognitionActive = true;
+        startRecognitionButton.textContent = '停止聲音識別';
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert('您的瀏覽器不支援語音辨識 (Speech Recognition)。');
+          await stopRecognition();
+          return;
+        }
+
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.lang = 'zh-HK';
+        speechRecognition.interimResults = false;
+        speechRecognition.continuous = true;
+
+        speechRecognition.onresult = (event) => {
+          const lastResult = event.results[event.results.length - 1];
+          if (lastResult.isFinal) {
+            const transcript = lastResult[0].transcript.trim();
+            if (transcript !== lastSttText) {
+              lastSttText = transcript;
+              if (sttDebounceTimer) clearTimeout(sttDebounceTimer);
+              sttDebounceTimer = setTimeout(() => {
+                if (!sections.soundDiffuser.classList.contains('hidden')) {
+                  sttTextDisplay.textContent = transcript;
+                }
+              }, 250);
+            }
+          }
+        };
+
+        speechRecognition.onerror = (event) => {
+          console.error('Speech recognition error', event.error);
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            alert('請允許麥克風權限以使用語音辨識功能。');
+            stopRecognition();
+          }
+        };
+
+        speechRecognition.onend = () => {
+          if (recognitionActive) {
+            setTimeout(() => {
+              if (recognitionActive && speechRecognition) {
+                try { speechRecognition.start(); } catch {}
+              }
+            }, 300);
+          }
+        };
+
+        speechRecognition.start();
+        isSpeechRecognitionActive = true;
+        startRecognitionButton.disabled = false;
+
+        javascriptNode.onaudioprocess = () => {
+          if (!recognitionActive) return;
+          const now = Date.now();
+
+          const array = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(array);
+
+          let lowSum = 0, midSum = 0, highSum = 0;
+          const lowFreqRange = Math.floor(array.length * 0.2);
+          const midFreqRange = Math.floor(array.length * 0.5);
+
+          for (let i = 0; i < array.length; i++) {
+            if (i < lowFreqRange) lowSum += array[i];
+            else if (i < midFreqRange) midSum += array[i];
+            else highSum += array[i];
+          }
+          const lowAverage = lowSum / lowFreqRange;
+          const midAverage = midSum / (midFreqRange - lowFreqRange);
+          const highAverage = highSum / (array.length - midFreqRange);
+          const overallAverage = (lowAverage + midAverage + highAverage) / 3;
+
+          const epsilon = 1e-10;
+          let geoMeanLogSum = 0, arithMeanSum = 0;
+          const len = array.length;
+          for (let i = 0; i < len; i++) {
+            geoMeanLogSum += Math.log(array[i] + epsilon);
+            arithMeanSum += array[i];
+          }
+          const geoMean = Math.exp(geoMeanLogSum / len);
+          const arithMean = arithMeanSum / len;
+          const spectralFlatness = geoMean / (arithMean + epsilon);
+
+          const alarmLoudnessThreshold = 90;
+          const crowdedLoudnessThreshold = 70;
+          const crowdedMidThreshold = 40;
+          const sereneLoudnessThreshold = 15;
+          const musicHighFreqThreshold = 10;
+          const flatnessThreshold = 0.5;
+
+          let finalHue, finalSaturation, finalLightness, alertText;
+
+          if (overallAverage > alarmLoudnessThreshold) {
+            finalHue = 0;
+            finalSaturation = 100;
+            finalLightness = 50;
+            alertText = '警號';
+          } else if (
+            highAverage > musicHighFreqThreshold &&
+            overallAverage > crowdedLoudnessThreshold &&
+            spectralFlatness < flatnessThreshold
+          ) {
+            const normalizedHigh = Math.min(highAverage / 255, 1);
+            finalHue = 0 + normalizedHigh * 60;
+            finalSaturation = 90;
+            finalLightness = 50;
+            alertText = '嘈雜';
+          } else if (
+            midAverage > crowdedMidThreshold &&
+            overallAverage > crowdedLoudnessThreshold &&
+            spectralFlatness < flatnessThreshold
+          ) {
+            finalHue = 60;
+            finalSaturation = 100;
+            finalLightness = 50;
+            alertText = '吵鬧';
+          } else if (overallAverage > sereneLoudnessThreshold * 3) {
+            const normalizedMid = Math.min(midAverage / 255, 1);
+            finalHue = 60 + normalizedMid * 60;
+            finalSaturation = 70;
+            finalLightness = 50;
+            alertText = '普通';
+          } else if (overallAverage > sereneLoudnessThreshold) {
+            finalHue = 120;
+            finalSaturation = 70;
+            finalLightness = 50;
+            alertText = '正常';
+          } else if (overallAverage < sereneLoudnessThreshold) {
+            finalHue = 200 + (1 - lowAverage / 255) * 40;
+            finalSaturation = 70;
+            finalLightness = 60;
+            alertText = '安靜';
+          } else {
+            const normalizedLow = Math.min(lowAverage / 255, 1);
+            finalHue = 200 + (1 - normalizedLow) * 40;
+            finalSaturation = 70;
+            finalLightness = 60;
+            alertText = '安靜';
+          }
+
+          // Circular hue smoothing:
+          const finalHueRad = finalHue * Math.PI / 180;
+          const newX = Math.cos(finalHueRad);
+          const newY = Math.sin(finalHueRad);
+
+          smoothX += smoothingAlpha * (newX - smoothX);
+          smoothY += smoothingAlpha * (newY - smoothY);
+          smoothSaturation += smoothingAlpha * (finalSaturation - smoothSaturation);
+          smoothLightness += smoothingAlpha * (finalLightness - smoothLightness);
+
+          let smoothHueRad = Math.atan2(smoothY, smoothX);
+          if (smoothHueRad < 0) smoothHueRad += 2 * Math.PI;
+          const smoothHueDeg = smoothHueRad * 180 / Math.PI;
+
+          if (now - lastColorUpdate > uiUpdateThrottleMs_BG) {
+            const lighterColor = lightenHsl(smoothHueDeg, smoothSaturation, smoothLightness, 20);
+            const baseColor = `hsl(${smoothHueDeg.toFixed(1)}, ${smoothSaturation.toFixed(1)}%, ${smoothLightness.toFixed(1)}%)`;
+            document.body.style.background = `linear-gradient(180deg, ${lighterColor} 0%, ${baseColor} 100%)`;
+            colorDisplay.textContent = baseColor;
+            colorDisplay.style.fontWeight = 'normal';
+            lastColorUpdate = now;
+          }
+
+          if (!sections.soundDiffuser.classList.contains('hidden') &&
+              (!sttTextDisplay.textContent || sttTextDisplay.textContent.trim() === '') &&
+              (now - lastTextUpdate > uiUpdateThrottleMs_Text)) {
+            hintTextDisplay.textContent = alertText;
+            lastTextUpdate = now;
+          }
+        };
+      } catch (err) {
+        console.error('錯誤：', err);
+        alert('無法啟動音訊設備，請檢查權限與設備。');
+        startRecognitionButton.disabled = false;
+        startRecognitionButton.textContent = '開始聲音識別';
+      }
+    }
+
+    startRecognitionButton.addEventListener('click', () => {
+      if (recognitionActive) {
+        stopRecognition();
+      } else {
+        startRecognition();
+      }
+    });
+
+    // ========== Alert System ==========
+
+    document.getElementById('btnTestEmergencyAlert').addEventListener('click', () => {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+        oscillator.stop(audioCtx.currentTime + 2);
+
+        oscillator.onended = () => audioCtx.close();
+      } catch {
+        alert("您的瀏覽器不支援音訊播放");
+      }
+    });
+
+    // ========== Emergency Message with SMS support ==========
+
+    const emergencyEmailInput = document.getElementById('emergencyEmailInput');
+    const emergencyMessageInput = document.getElementById('emergencyMessageInput');
+    const btnSendEmergencyText = document.getElementById('btnSendEmergencyText');
+    const emergencyEmailStatus = document.getElementById('emergencyEmailStatus');
+
+    function composeEmergencyEmail(message) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('zh-HK', { year:'numeric', month:'2-digit', day:'2-digit' });
+      return `
+親愛的用戶，
+
+此為您的緊急訊息：
+
+${message}
+
+發送日期：${dateStr}
+
+請求相關單位儘速處理。
+
+此致，
+系統自動發送訊息
+      `.trim();
+    }
+
+    function looksLikePhoneNumber(str) {
+      return /^\+?[\d\s\-]{6,}$/.test(str);
+    }
+
+    btnSendEmergencyText.addEventListener('click', () => {
+      const recipient = emergencyEmailInput.value.trim();
+      const message = emergencyMessageInput.value.trim();
+      if (!recipient) {
+        alert('請輸入接收者電話號碼或電子郵件');
+        return;
+      }
+      if (!message) {
+        alert('請輸入緊急訊息內容');
+        return;
+      }
+
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile && looksLikePhoneNumber(recipient)) {
+        const smsBody = encodeURIComponent(message);
+        const smsRecipient = recipient.replace(/\s+/g, '');
+        const smsLink = `sms:${smsRecipient}?body=${smsBody}`;
+        window.location.href = smsLink;
+        emergencyEmailStatus.textContent = "短信將在手機短信應用中打開";
+      } else {
+        const emailText = composeEmergencyEmail(message);
+        console.log(`Emergency message to: ${recipient}`);
+        console.log(emailText);
+        emergencyEmailStatus.textContent = "緊急訊息已成功“發送”（模擬）";
+        alert("緊急訊息已發送（模擬）。請檢查瀏覽器控制台。");
+      }
+    });
+
+    function clearEmergencyInput() {
+      emergencyEmailInput.value = '';
+      emergencyMessageInput.value = '';
+      emergencyEmailStatus.textContent = '';
+    }
+
+    // ========== Location Sharing with SMS send ==========
+
+    const btnShareCurrentLocation = document.getElementById('btnShareCurrentLocation');
+    const sharedLocationLink = document.getElementById('sharedLocationLink');
+    const btnSendLocationSms = document.getElementById('btnSendLocationSms');
+
+    btnShareCurrentLocation.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('您的瀏覽器不支援地理位置服務。');
+        return;
+      }
+      sharedLocationLink.textContent = '定位中...請稍候';
+      btnSendLocationSms.classList.add('hidden');
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lon = pos.coords.longitude.toFixed(6);
+          const url = `https://maps.google.com/?q=${lat},${lon}`;
+          sharedLocationLink.innerHTML = `位置共享連結:<br><a href="${url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline">${url}</a>`;
+
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          if (isMobile) {
+            btnSendLocationSms.classList.remove('hidden');
+            btnSendLocationSms.onclick = () => {
+              const smsBody = encodeURIComponent(`我的位置：${url}`);
+              const smsLink = `sms:?body=${smsBody}`;
+              window.location.href = smsLink;
+            };
+          } else {
+            btnSendLocationSms.classList.add('hidden');
+          }
+
+          alert('位置已成功共享！');
+        },
+        err => {
+          sharedLocationLink.textContent = '定位失敗: ' + err.message;
+          alert('無法取得位置權限或定位失敗。');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  </script>
+</body>
+</html>

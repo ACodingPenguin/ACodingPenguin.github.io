@@ -1,0 +1,65 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+}
+
+h1 {
+    color: #0056b3;
+    margin-bottom: 20px;
+}
+
+.alert-panel, .daily-use-panel, .location-panel {
+    margin-bottom: 20px;
+}
+
+.alert-button, .daily-button, .location-button {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.alert-button.fire { background-color: #dc3545; } /* Red */
+.alert-button.medical { background-color: #007bff; } /* Blue */
+.alert-button.natural-disaster { background-color: #ffc107; color: #333; } /* Yellow */
+.alert-button.bus-stop { background-color: #6c757d; } /* Gray */
+
+.daily-button { background-color: #28a745; } /* Green */
+.location-button { background-color: #17a2b8; } /* Teal */
+
+.alert-button:hover, .daily-button:hover, .location-button:hover {
+    opacity: 0.9;
+}
+
+/* Flashing effect for alerts */
+.flashing {
+    animation: flash 0.5s infinite alternate;
+}
+
+@keyframes flash {
+    from { opacity: 1; }
+    to { opacity: 0.2; }
+}
