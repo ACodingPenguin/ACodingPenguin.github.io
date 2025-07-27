@@ -447,7 +447,6 @@
           }
 
           if (!sections.soundDiffuser.classList.contains('hidden') &&
-              (!sttTextDisplay.textContent || sttTextDisplay.textContent.trim() === '') &&
               (now - lastTextUpdate > uiUpdateThrottleMs_Text)) {
             hintTextDisplay.textContent = alertText;
             lastTextUpdate = now;
