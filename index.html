@@ -70,6 +70,15 @@
   #btnSendLocationSms:hover {
     background-color: #059669;
   }
+
+  /* Flashing effect for alert button in 警報系統 */
+  .flashing {
+    animation: flash 0.5s infinite alternate;
+  }
+  @keyframes flash {
+    from { opacity: 1; }
+    to { opacity: 0.2; }
+  }
 </style>
 </head>
 <body>
@@ -191,7 +200,6 @@
     });
 
     // ========== Sound Diffuser ==========
-
     const startRecognitionButton = document.getElementById('startRecognition');
     const colorDisplay = document.getElementById('colorDisplay');
     const hintTextDisplay = document.getElementById('hintTextDisplay');
@@ -469,8 +477,12 @@
     });
 
     // ========== Alert System ==========
+    const alertButton = document.getElementById('btnTestEmergencyAlert');
 
-    document.getElementById('btnTestEmergencyAlert').addEventListener('click', () => {
+    alertButton.addEventListener('click', () => {
+      // Add flashing effect
+      alertButton.classList.add('flashing');
+
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
@@ -484,17 +496,23 @@
         gainNode.connect(audioCtx.destination);
 
         oscillator.start();
+
+        // Fade out and stop after 2 seconds
         gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
         oscillator.stop(audioCtx.currentTime + 2);
 
-        oscillator.onended = () => audioCtx.close();
+        oscillator.onended = () => {
+          audioCtx.close();
+          // Remove flashing effect when sound ends
+          alertButton.classList.remove('flashing');
+        };
       } catch {
         alert("您的瀏覽器不支援音訊播放");
+        alertButton.classList.remove('flashing');
       }
     });
 
     // ========== Emergency Message with SMS support ==========
-
     const emergencyEmailInput = document.getElementById('emergencyEmailInput');
     const emergencyMessageInput = document.getElementById('emergencyMessageInput');
     const btnSendEmergencyText = document.getElementById('btnSendEmergencyText');
@@ -558,7 +576,6 @@ ${message}
     }
 
     // ========== Location Sharing with SMS send ==========
-
     const btnShareCurrentLocation = document.getElementById('btnShareCurrentLocation');
     const sharedLocationLink = document.getElementById('sharedLocationLink');
     const btnSendLocationSms = document.getElementById('btnSendLocationSms');
