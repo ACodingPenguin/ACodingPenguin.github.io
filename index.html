@@ -2,7 +2,7 @@
 <html lang="zh-HK" class="scroll-smooth">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>溝通與安全</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
@@ -15,9 +15,6 @@
     display: flex; justify-content: center; align-items: center;
     transition: background 1.5s ease;
   }
-  * {
-      touch-action: manipulation;
-    }
   #app {
     background-color: #1f2937;
     border-radius: 1.25rem;
@@ -143,6 +140,27 @@
           class="w-full rounded-md bg-gray-600 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3" aria-label="接收者電話或电子邮件" />
         <textarea id="emergencyMessageInput" rows="6" placeholder="請輸入緊急訊息..."
           class="w-full rounded-md bg-gray-700 p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none mb-4"></textarea>
+
+        <!-- Stock Messages Buttons -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button type="button" class="bg-yellow-500 hover:bg-yellow-600 rounded-lg py-2 font-semibold text-white"
+            aria-label="發送緊急消息：有人受傷，需要立即醫療協助" data-msg="有人受傷，需要立即醫療協助，請速來救援。">
+            有人受傷，請速救援
+          </button>
+          <button type="button" class="bg-yellow-500 hover:bg-yellow-600 rounded-lg py-2 font-semibold text-white"
+            aria-label="發送緊急消息：發生火災，需要消防支援" data-msg="現場發生火災，請消防隊迅速前往支援。">
+            現場火災，請求支援
+          </button>
+          <button type="button" class="bg-yellow-500 hover:bg-yellow-600 rounded-lg py-2 font-semibold text-white"
+            aria-label="發送緊急消息：遇到危險人物，情況緊急" data-msg="現場有危險人物，情況緊急，請立即派員處理。">
+            遇危險人物，請注意
+          </button>
+          <button type="button" class="bg-yellow-500 hover:bg-yellow-600 rounded-lg py-2 font-semibold text-white"
+            aria-label="發送緊急消息：自然災害發生，請求緊急救援" data-msg="發生自然災害，需緊急救援，請盡快協助。">
+            自然災害，請救援
+          </button>
+        </div>
+
         <button id="btnSendEmergencyText" class="w-full bg-yellow-600 hover:bg-yellow-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400 mb-2" aria-label="發送緊急訊息">發送緊急訊息</button>
         <div id="emergencyEmailStatus" class="text-center text-sm text-green-400 min-h-[1.5rem]" aria-live="polite" aria-atomic="true"></div>
         <button id="btnBackFromEmergency" class="mt-auto w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
@@ -483,9 +501,7 @@
     const alertButton = document.getElementById('btnTestEmergencyAlert');
 
     alertButton.addEventListener('click', () => {
-      // Add flashing effect
       alertButton.classList.add('flashing');
-
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
@@ -500,13 +516,11 @@
 
         oscillator.start();
 
-        // Fade out and stop after 2 seconds
         gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
         oscillator.stop(audioCtx.currentTime + 2);
 
         oscillator.onended = () => {
           audioCtx.close();
-          // Remove flashing effect when sound ends
           alertButton.classList.remove('flashing');
         };
       } catch {
@@ -515,7 +529,7 @@
       }
     });
 
-    // ========== Emergency Message with SMS support ==========
+    // ========== Emergency Message ==========
     const emergencyEmailInput = document.getElementById('emergencyEmailInput');
     const emergencyMessageInput = document.getElementById('emergencyMessageInput');
     const btnSendEmergencyText = document.getElementById('btnSendEmergencyText');
@@ -572,13 +586,21 @@ ${message}
       }
     });
 
+    // Handle stock message buttons (auto-fill + send)
+    document.querySelectorAll('#sectionEmergencyText button[data-msg]').forEach(button => {
+      button.addEventListener('click', () => {
+        emergencyMessageInput.value = button.getAttribute('data-msg');
+        btnSendEmergencyText.click();
+      });
+    });
+
     function clearEmergencyInput() {
       emergencyEmailInput.value = '';
       emergencyMessageInput.value = '';
       emergencyEmailStatus.textContent = '';
     }
 
-    // ========== Location Sharing with SMS send ==========
+    // ========== Location Sharing ==========
     const btnShareCurrentLocation = document.getElementById('btnShareCurrentLocation');
     const sharedLocationLink = document.getElementById('sharedLocationLink');
     const btnSendLocationSms = document.getElementById('btnSendLocationSms');
