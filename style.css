@@ -59,6 +59,10 @@ h1 {
     animation: flash 0.5s infinite alternate;
 }
 
+* {
+  touch-action: manipulation;
+}
+
 @keyframes flash {
     from { opacity: 1; }
     to { opacity: 0.2; }
