@@ -15,6 +15,9 @@
     display: flex; justify-content: center; align-items: center;
     transition: background 1.5s ease;
   }
+  * {
+      touch-action: manipulation;
+    }
   #app {
     background-color: #1f2937;
     border-radius: 1.25rem;
@@ -80,9 +83,6 @@
     to { opacity: 0.2; }
   }
 </style>
-  * {
-      touch-action: manipulation;
-    }
 </head>
 <body>
   <div id="app" role="main" aria-label="溝通與安全主介面">
