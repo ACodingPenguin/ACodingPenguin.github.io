@@ -70,14 +70,43 @@
   #btnSendLocationSms:hover {
     background-color: #059669;
   }
-
-  /* Flashing effect for alert button in 警報系統 */
+  /* Flashing effect for alert button in 警聲播報 */
   .flashing {
     animation: flash 0.5s infinite alternate;
   }
   @keyframes flash {
     from { opacity: 1; }
     to { opacity: 0.2; }
+  }
+  /* General styling for Alert system buttons */
+  #btnTestEmergencyAlert {
+    position: relative;
+  }
+  /* Alert Voice Broadcast TTS play button */
+  #btnPlayAlertTTS {
+    background-color: #f87171;
+    color: white;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    padding: 0.75rem 0;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    border: none;
+  }
+  #btnPlayAlertTTS:hover {
+    background-color: #ef4444;
+  }
+  #alertTTSInput {
+    width: 100%;
+    border-radius: 0.375rem;
+    background-color: #374151;
+    color: white;
+    font-size: 1rem;
+    padding: 0.75rem;
+    resize: none;
+    border: 1px solid #f87171;
+    margin-bottom: 1rem;
   }
 </style>
 </head>
@@ -88,18 +117,18 @@
     </header>
     <main>
       <!-- Main menu -->
-      <section class="mb-8">
+      <section class="mb-8" aria-label="主功能選單">
         <h2 class="text-xl font-semibold mb-4 text-center">選擇功能</h2>
         <div class="grid grid-cols-2 gap-4">
           <button id="btnSoundDiffuser" class="bg-indigo-600 hover:bg-indigo-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="聲音識別功能">聲音識別</button>
-          <button id="btnAlertSystem" class="bg-red-600 hover:bg-red-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="警報系統">警報系統</button>
+          <button id="btnAlertSystem" class="bg-red-600 hover:bg-red-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="警聲播報功能">警聲播報</button>
           <button id="btnEmergencyText" class="bg-yellow-600 hover:bg-yellow-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="緊急訊息發送">緊急訊息</button>
           <button id="btnShareLocation" class="bg-green-600 hover:bg-green-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-green-500" aria-label="分享位置">分享位置</button>
         </div>
       </section>
 
       <!-- Sound Diffuser Section -->
-      <section id="sectionSoundDiffuser" class="hidden">
+      <section id="sectionSoundDiffuser" class="hidden" aria-label="聲音識別功能區">
         <h2 class="text-lg font-semibold mb-3 text-center">聲音識別</h2>
         <button id="startRecognition"
           class="bg-indigo-500 hover:bg-indigo-600 rounded-lg w-full py-4 font-bold text-white mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -125,24 +154,30 @@
         <button id="btnBackFromSound" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
       </section>
 
-      <!-- Alert System Section -->
-      <section id="sectionAlertSystem" class="hidden flex flex-col">
-        <h2 class="text-lg font-semibold mb-3 text-center">警報系統</h2>
-        <p class="text-center mb-4 text-gray-300">按下按鈕觸發緊急警報聲音</p>
-        <button id="btnTestEmergencyAlert" class="w-full bg-red-700 hover:bg-red-800 rounded-lg py-3 font-semibold mb-3 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="測試緊急警報">觸發警報聲</button>
-        <button id="btnBackFromAlert" class="w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
+      <!-- Alert Voice Broadcast Section -->
+      <section id="sectionAlertSystem" class="hidden flex flex-col" aria-label="警聲播報功能區">
+        <h2 class="text-lg font-semibold mb-3 text-center">警聲播報</h2>
+        <p class="text-center mb-4 text-gray-300">按下按鈕觸發緊急警報聲音或語音播報</p>
+        
+        <button id="btnTestEmergencyAlert" class="w-full bg-red-700 hover:bg-red-800 rounded-lg py-3 font-semibold mb-4 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="測試緊急警報">觸發警報聲</button>
+        
+        <textarea id="alertTTSInput" rows="4" placeholder="輸入您想播報的警報訊息..."
+          aria-label="警報語音播報輸入框"></textarea>
+        
+        <button id="btnPlayAlertTTS" aria-label="播放警報語音">播放警報語音</button>
+        
+        <button id="btnBackFromAlert" class="mt-auto w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
       </section>
 
       <!-- Emergency Text Section -->
-      <section id="sectionEmergencyText" class="hidden flex flex-col">
+      <section id="sectionEmergencyText" class="hidden flex flex-col" aria-label="緊急訊息發送功能區">
         <h2 class="text-lg font-semibold mb-3 text-center">緊急訊息發送</h2>
         <input id="emergencyEmailInput" type="text" placeholder="接收者電話號碼或電子郵件"
-          class="w-full rounded-md bg-gray-600 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3" aria-label="接收者電話或电子邮件" />
+          class="w-full rounded-md bg-gray-600 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3" aria-label="接收者電話或電子郵件" />
         <textarea id="emergencyMessageInput" rows="6" placeholder="請輸入緊急訊息..."
           class="w-full rounded-md bg-gray-700 p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none mb-4"></textarea>
 
-        <!-- Stock Messages Buttons -->
-        <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="grid grid-cols-2 gap-3 mb-4" aria-label="快速訊息按鈕">
           <button type="button" class="mt-auto w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500"
             aria-label="發送緊急消息：有人受傷，需要立即醫療協助" data-msg="有人受傷，需要立即醫療協助，請速來救援。">
             有人受傷，請速救援
@@ -167,7 +202,7 @@
       </section>
 
       <!-- Share Location Section -->
-      <section id="sectionShareLocation" class="hidden">
+      <section id="sectionShareLocation" class="hidden" aria-label="分享位置功能區">
         <h2 class="text-lg font-semibold mb-3 text-center">分享位置</h2>
         <p class="mb-4 text-center text-gray-300">按下按鈕以分享您當前的位置</p>
         <button id="btnShareCurrentLocation" class="w-full bg-green-600 hover:bg-green-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-green-400" aria-label="分享當前位置">分享位置</button>
@@ -179,7 +214,7 @@
   </div>
 
   <script>
-    // Section switching helper
+    // === Section navigation helper ===
     const sections = {
       soundDiffuser: document.getElementById('sectionSoundDiffuser'),
       alertSystem: document.getElementById('sectionAlertSystem'),
@@ -220,7 +255,7 @@
       document.getElementById('sharedLocationLink').textContent = '';
     });
 
-    // ========== Sound Diffuser ==========
+    // ========== Sound Diffuser (Audio + Speech Recognition) ==========
     const startRecognitionButton = document.getElementById('startRecognition');
     const colorDisplay = document.getElementById('colorDisplay');
     const hintTextDisplay = document.getElementById('hintTextDisplay');
@@ -497,8 +532,11 @@
       }
     });
 
-    // ========== Alert System ==========
+    // ========== Alert Voice Broadcast ==========
+
     const alertButton = document.getElementById('btnTestEmergencyAlert');
+    const btnPlayAlertTTS = document.getElementById('btnPlayAlertTTS');
+    const alertTTSInput = document.getElementById('alertTTSInput');
 
     alertButton.addEventListener('click', () => {
       alertButton.classList.add('flashing');
@@ -527,6 +565,28 @@
         alert("您的瀏覽器不支援音訊播放");
         alertButton.classList.remove('flashing');
       }
+    });
+
+    btnPlayAlertTTS.addEventListener('click', () => {
+      const text = alertTTSInput.value.trim();
+      if (!text) {
+        alert('請輸入警報語音內容');
+        return;
+      }
+      if (!window.speechSynthesis) {
+        alert('抱歉，您的瀏覽器不支援語音合成功能。');
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-HK'; // Cantonese
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      window.speechSynthesis.speak(utterance);
     });
 
     // ========== Emergency Message ==========
