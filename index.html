@@ -69,6 +69,9 @@
     color: #93c5fd; font-style: italic; user-select: none;
     min-height: 1.5em; margin-top: 0.25rem;
   }
+  #colorDisplay {
+    font-family: monospace;
+  }
   #sharedLocationLink a {
     word-break: break-all;
   }
@@ -136,6 +139,7 @@
       <h1>溝通與安全</h1>
     </header>
     <main>
+
       <!-- Main menu -->
       <section class="mb-8" aria-label="主功能選單">
         <h2 class="text-xl font-semibold mb-4 text-center">選擇功能</h2>
@@ -234,11 +238,12 @@
 
         <button id="btnBackFromShareLocation" class="mt-6 w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
       </section>
+
     </main>
   </div>
 
 <script>
-  // Section navigation
+  // === Section navigation ===
   const sections = {
     soundDiffuser: document.getElementById('sectionSoundDiffuser'),
     alertSystem: document.getElementById('sectionAlertSystem'),
@@ -260,7 +265,7 @@
   }
   showSection(null);
 
-  // Navigation buttons
+  // Main menu buttons
   document.getElementById('btnSoundDiffuser').addEventListener('click', () => showSection('soundDiffuser'));
   document.getElementById('btnAlertSystem').addEventListener('click', () => showSection('alertSystem'));
   document.getElementById('btnEmergencyText').addEventListener('click', () => showSection('emergencyText'));
@@ -277,10 +282,10 @@
     showSection(null);
     document.getElementById('btnSendLocationSms').classList.add('hidden');
     document.getElementById('sharedLocationLink').textContent = '';
-    // Clear the map (optional: reset view)
+    // Optional to clear map view or marker here
   });
 
-  // ========== Sound Diffuser ==========
+  // === Sound Diffuser Implementation ===
   const startRecognitionButton = document.getElementById('startRecognition');
   const colorDisplay = document.getElementById('colorDisplay');
   const hintTextDisplay = document.getElementById('hintTextDisplay');
@@ -333,9 +338,12 @@
       await audioContext.close();
       audioContext = null;
     }
+
     recognitionActive = false;
+
     startRecognitionButton.disabled = false;
     startRecognitionButton.textContent = '開始聲音識別';
+
     hintTextDisplay.textContent = '請按下開始';
     sttTextDisplay.textContent = '';
     colorDisplay.textContent = '#000000';
@@ -553,7 +561,7 @@
     }
   });
 
-  // ========== Alert Voice Broadcast ==========
+  // === Alert Voice Broadcast ===
   const alertButton = document.getElementById('btnTestEmergencyAlert');
   const btnPlayAlertTTS = document.getElementById('btnPlayAlertTTS');
   const alertTTSInput = document.getElementById('alertTTSInput');
@@ -609,7 +617,7 @@
     window.speechSynthesis.speak(utterance);
   });
 
-  // ========== Emergency Message ==========
+  // === Emergency Text ===
   const emergencyEmailInput = document.getElementById('emergencyEmailInput');
   const emergencyMessageInput = document.getElementById('emergencyMessageInput');
   const btnSendEmergencyText = document.getElementById('btnSendEmergencyText');
@@ -666,7 +674,7 @@ ${message}
     }
   });
 
-  // Handle stock message buttons (auto-fill + send)
+  // Quick emergency messages buttons fill + send
   document.querySelectorAll('#sectionEmergencyText button[data-msg]').forEach(button => {
     button.addEventListener('click', () => {
       emergencyMessageInput.value = button.getAttribute('data-msg');
@@ -680,7 +688,7 @@ ${message}
     emergencyEmailStatus.textContent = '';
   }
 
-  // ========== Location Sharing with Leaflet small map ==========
+  // === Share Location with small fixed Leaflet map and popup upon permission ===
   const btnShareCurrentLocation = document.getElementById('btnShareCurrentLocation');
   const sharedLocationLink = document.getElementById('sharedLocationLink');
   const btnSendLocationSms = document.getElementById('btnSendLocationSms');
@@ -703,7 +711,7 @@ ${message}
         const url = `https://maps.google.com/?q=${latFixed},${lonFixed}`;
         sharedLocationLink.innerHTML = `位置共享連結:<br><a href="${url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline">${url}</a>`;
 
-        // Initialize or update Leaflet map
+        // Initialize or update Leaflet map with interaction disabled
         if (!map) {
           map = L.map('locationMap', {
             center: [lat, lon],
@@ -723,13 +731,12 @@ ${message}
             attribution: '&copy; OpenStreetMap contributors',
           }).addTo(map);
 
-          marker = L.marker([lat, lon]).addTo(map)
-            .bindPopup('您的目前位置')
-            .openPopup();
+          marker = L.marker([lat, lon]).addTo(map);
+          marker.bindPopup('您的目前位置').openPopup();
         } else {
-          // Update location on map
           map.setView([lat, lon], 14);
-          marker.setLatLng([lat, lon]).openPopup();
+          marker.setLatLng([lat, lon]);
+          marker.openPopup();
         }
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -753,6 +760,7 @@ ${message}
       { enableHighAccuracy: true, timeout: 10000 }
     );
   });
+
 </script>
 </body>
 </html>
