@@ -4,23 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>溝通與安全</title>
-
-<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Leaflet CSS and JS for Map -->
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  integrity="sha256-o9N1jWyFAwvY+hSzCuanX1V7URa9MqfIeul0H3v0zU8="
-  crossorigin=""
-/>
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-o9N1jWyFAwvY+hSzCuanX1V7URa9MqfIeul0H3v0zU8="
-  crossorigin=""
-></script>
-
 <style>
   body {
     font-family: 'Noto Sans TC', sans-serif;
@@ -69,9 +53,6 @@
     color: #93c5fd; font-style: italic; user-select: none;
     min-height: 1.5em; margin-top: 0.25rem;
   }
-  #colorDisplay {
-    font-family: monospace;
-  }
   #sharedLocationLink a {
     word-break: break-all;
   }
@@ -89,13 +70,17 @@
   #btnSendLocationSms:hover {
     background-color: #059669;
   }
-  /* Flashing effect */
+  /* Flashing effect for alert button in 警聲播報 */
   .flashing {
     animation: flash 0.5s infinite alternate;
   }
   @keyframes flash {
     from { opacity: 1; }
     to { opacity: 0.2; }
+  }
+  /* General styling for Alert system buttons */
+  #btnTestEmergencyAlert {
+    position: relative;
   }
   /* Alert Voice Broadcast TTS play button */
   #btnPlayAlertTTS {
@@ -123,14 +108,6 @@
     border: 1px solid #f87171;
     margin-bottom: 1rem;
   }
-  /* Leaflet map fixed small size */
-  #locationMap {
-    width: 200px;
-    height: 150px;
-    margin-top: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
-  }
 </style>
 </head>
 <body>
@@ -139,7 +116,6 @@
       <h1>溝通與安全</h1>
     </header>
     <main>
-
       <!-- Main menu -->
       <section class="mb-8" aria-label="主功能選單">
         <h2 class="text-xl font-semibold mb-4 text-center">選擇功能</h2>
@@ -225,408 +201,404 @@
         <button id="btnBackFromEmergency" class="mt-auto w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
       </section>
 
-      <!-- Share Location Section with Map -->
+      <!-- Share Location Section -->
       <section id="sectionShareLocation" class="hidden" aria-label="分享位置功能區">
         <h2 class="text-lg font-semibold mb-3 text-center">分享位置</h2>
         <p class="mb-4 text-center text-gray-300">按下按鈕以分享您當前的位置</p>
         <button id="btnShareCurrentLocation" class="w-full bg-green-600 hover:bg-green-700 rounded-lg py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-green-400" aria-label="分享當前位置">分享位置</button>
         <div id="sharedLocationLink" class="mt-4 text-sm text-center text-cyan-400 break-words"></div>
         <button id="btnSendLocationSms" class="hidden" aria-label="以短信發送位置">以短信發送位置</button>
-
-        <!-- Leaflet Map Container -->
-        <div id="locationMap" aria-label="使用者位置地圖" role="region"></div>
-
         <button id="btnBackFromShareLocation" class="mt-6 w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-gray-500" aria-label="返回主功能選單">← 返回主選單</button>
       </section>
-
     </main>
   </div>
 
-<script>
-  // === Section navigation ===
-  const sections = {
-    soundDiffuser: document.getElementById('sectionSoundDiffuser'),
-    alertSystem: document.getElementById('sectionAlertSystem'),
-    emergencyText: document.getElementById('sectionEmergencyText'),
-    shareLocation: document.getElementById('sectionShareLocation'),
-  };
+  <script>
+    // === Section navigation helper ===
+    const sections = {
+      soundDiffuser: document.getElementById('sectionSoundDiffuser'),
+      alertSystem: document.getElementById('sectionAlertSystem'),
+      emergencyText: document.getElementById('sectionEmergencyText'),
+      shareLocation: document.getElementById('sectionShareLocation'),
+    };
 
-  function showSection(key) {
-    if (!key) {
-      for (const k in sections) sections[k].classList.add('hidden');
-      document.querySelector('section.mb-8').classList.remove('hidden');
-    } else {
-      document.querySelector('section.mb-8').classList.add('hidden');
-      for (const k in sections) {
-        if (k === key) sections[k].classList.remove('hidden');
-        else sections[k].classList.add('hidden');
+    function showSection(key) {
+      if (!key) {
+        for (const k in sections) sections[k].classList.add('hidden');
+        document.querySelector('section.mb-8').classList.remove('hidden');
+      } else {
+        document.querySelector('section.mb-8').classList.add('hidden');
+        for (const k in sections) {
+          if (k === key) sections[k].classList.remove('hidden');
+          else sections[k].classList.add('hidden');
+        }
       }
     }
-  }
-  showSection(null);
-
-  // Main menu buttons
-  document.getElementById('btnSoundDiffuser').addEventListener('click', () => showSection('soundDiffuser'));
-  document.getElementById('btnAlertSystem').addEventListener('click', () => showSection('alertSystem'));
-  document.getElementById('btnEmergencyText').addEventListener('click', () => showSection('emergencyText'));
-  document.getElementById('btnShareLocation').addEventListener('click', () => showSection('shareLocation'));
-
-  // Back buttons
-  document.getElementById('btnBackFromSound').addEventListener('click', () => showSection(null));
-  document.getElementById('btnBackFromAlert').addEventListener('click', () => showSection(null));
-  document.getElementById('btnBackFromEmergency').addEventListener('click', () => {
-    clearEmergencyInput();
     showSection(null);
-  });
-  document.getElementById('btnBackFromShareLocation').addEventListener('click', () => {
-    showSection(null);
-    document.getElementById('btnSendLocationSms').classList.add('hidden');
-    document.getElementById('sharedLocationLink').textContent = '';
-    // Optional to clear map view or marker here
-  });
 
-  // === Sound Diffuser Implementation ===
-  const startRecognitionButton = document.getElementById('startRecognition');
-  const colorDisplay = document.getElementById('colorDisplay');
-  const hintTextDisplay = document.getElementById('hintTextDisplay');
-  const sttTextDisplay = document.getElementById('sttTextDisplay');
+    // Navigation buttons
+    document.getElementById('btnSoundDiffuser').addEventListener('click', () => showSection('soundDiffuser'));
+    document.getElementById('btnAlertSystem').addEventListener('click', () => showSection('alertSystem'));
+    document.getElementById('btnEmergencyText').addEventListener('click', () => showSection('emergencyText'));
+    document.getElementById('btnShareLocation').addEventListener('click', () => showSection('shareLocation'));
 
-  let audioContext, analyser, microphone, javascriptNode;
-  let speechRecognition;
-  let recognitionActive = false;
-  let isSpeechRecognitionActive = false;
+    // Back buttons
+    document.getElementById('btnBackFromSound').addEventListener('click', () => showSection(null));
+    document.getElementById('btnBackFromAlert').addEventListener('click', () => showSection(null));
+    document.getElementById('btnBackFromEmergency').addEventListener('click', () => {
+      clearEmergencyInput();
+      showSection(null);
+    });
+    document.getElementById('btnBackFromShareLocation').addEventListener('click', () => {
+      showSection(null);
+      document.getElementById('btnSendLocationSms').classList.add('hidden');
+      document.getElementById('sharedLocationLink').textContent = '';
+    });
 
-  const uiUpdateThrottleMs_BG = 80;
-  const uiUpdateThrottleMs_Text = 400;
-  let lastColorUpdate = 0;
-  let lastTextUpdate = 0;
+    // ========== Sound Diffuser (Audio + Speech Recognition) ==========
+    const startRecognitionButton = document.getElementById('startRecognition');
+    const colorDisplay = document.getElementById('colorDisplay');
+    const hintTextDisplay = document.getElementById('hintTextDisplay');
+    const sttTextDisplay = document.getElementById('sttTextDisplay');
 
-  let lastSttText = '';
-  let sttDebounceTimer = null;
+    let audioContext, analyser, microphone, javascriptNode;
+    let speechRecognition;
+    let recognitionActive = false;
+    let isSpeechRecognitionActive = false;
 
-  let smoothX = 1, smoothY = 0;
-  let smoothSaturation = 0, smoothLightness = 0;
-  const smoothingAlpha = 0.05;
+    const uiUpdateThrottleMs_BG = 80;
+    const uiUpdateThrottleMs_Text = 400;
+    let lastColorUpdate = 0;
+    let lastTextUpdate = 0;
 
-  function lightenHsl(h, s, l, amount = 20) {
-    return `hsl(${h}, ${s}%, ${Math.min(l + amount, 90)}%)`;
-  }
+    let lastSttText = '';
+    let sttDebounceTimer = null;
 
-  async function stopRecognition() {
-    if (speechRecognition && isSpeechRecognitionActive) {
-      speechRecognition.onresult = null;
-      speechRecognition.onerror = null;
-      speechRecognition.onend = null;
-      try { speechRecognition.stop(); } catch {}
-      isSpeechRecognitionActive = false;
-      speechRecognition = null;
-    }
-    if (javascriptNode) {
-      javascriptNode.disconnect();
-      javascriptNode.onaudioprocess = null;
-      javascriptNode = null;
-    }
-    if (analyser) {
-      analyser.disconnect();
-      analyser = null;
-    }
-    if (microphone) {
-      microphone.disconnect();
-      microphone = null;
-    }
-    if (audioContext && audioContext.state !== 'closed') {
-      await audioContext.close();
-      audioContext = null;
+    let smoothX = 1, smoothY = 0;
+    let smoothSaturation = 0, smoothLightness = 0;
+    const smoothingAlpha = 0.05;
+
+    function lightenHsl(h, s, l, amount = 20) {
+      return `hsl(${h}, ${s}%, ${Math.min(l + amount, 90)}%)`;
     }
 
-    recognitionActive = false;
+    async function stopRecognition() {
+      if (speechRecognition && isSpeechRecognitionActive) {
+        speechRecognition.onresult = null;
+        speechRecognition.onerror = null;
+        speechRecognition.onend = null;
+        try { speechRecognition.stop(); } catch {}
+        isSpeechRecognitionActive = false;
+        speechRecognition = null;
+      }
+      if (javascriptNode) {
+        javascriptNode.disconnect();
+        javascriptNode.onaudioprocess = null;
+        javascriptNode = null;
+      }
+      if (analyser) {
+        analyser.disconnect();
+        analyser = null;
+      }
+      if (microphone) {
+        microphone.disconnect();
+        microphone = null;
+      }
+      if (audioContext && audioContext.state !== 'closed') {
+        await audioContext.close();
+        audioContext = null;
+      }
 
-    startRecognitionButton.disabled = false;
-    startRecognitionButton.textContent = '開始聲音識別';
+      recognitionActive = false;
 
-    hintTextDisplay.textContent = '請按下開始';
-    sttTextDisplay.textContent = '';
-    colorDisplay.textContent = '#000000';
+      startRecognitionButton.disabled = false;
+      startRecognitionButton.textContent = '開始聲音識別';
 
-    smoothX = 1;
-    smoothY = 0;
-    smoothSaturation = 0;
-    smoothLightness = 0;
-  }
+      hintTextDisplay.textContent = '請按下開始';
+      sttTextDisplay.textContent = '';
+      colorDisplay.textContent = '#000000';
+      document.body.style.background = '#121212';
 
-  async function startRecognition() {
-    if (recognitionActive) return;
+      smoothX = 1;
+      smoothY = 0;
+      smoothSaturation = 0;
+      smoothLightness = 0;
+    }
 
-    startRecognitionButton.disabled = true;
+    async function startRecognition() {
+      if (recognitionActive) return;
 
-    try {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      microphone = audioContext.createMediaStreamSource(audioStream);
+      startRecognitionButton.disabled = true;
 
-      analyser = audioContext.createAnalyser();
-      analyser.smoothingTimeConstant = 0.3;
-      analyser.fftSize = 1024;
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        microphone = audioContext.createMediaStreamSource(audioStream);
 
-      javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+        analyser = audioContext.createAnalyser();
+        analyser.smoothingTimeConstant = 0.3;
+        analyser.fftSize = 1024;
 
-      microphone.connect(analyser);
-      analyser.connect(javascriptNode);
-      javascriptNode.connect(audioContext.destination);
+        javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
 
-      recognitionActive = true;
-      startRecognitionButton.textContent = '停止聲音識別';
+        microphone.connect(analyser);
+        analyser.connect(javascriptNode);
+        javascriptNode.connect(audioContext.destination);
 
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert('您的瀏覽器不支援語音辨識 (Speech Recognition)。');
-        await stopRecognition();
+        recognitionActive = true;
+        startRecognitionButton.textContent = '停止聲音識別';
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert('您的瀏覽器不支援語音辨識 (Speech Recognition)。');
+          await stopRecognition();
+          return;
+        }
+
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.lang = 'zh-HK';
+        speechRecognition.interimResults = false;
+        speechRecognition.continuous = true;
+
+        speechRecognition.onresult = (event) => {
+          const lastResult = event.results[event.results.length - 1];
+          if (lastResult.isFinal) {
+            const transcript = lastResult[0].transcript.trim();
+            if (transcript !== lastSttText) {
+              lastSttText = transcript;
+              if (sttDebounceTimer) clearTimeout(sttDebounceTimer);
+              sttDebounceTimer = setTimeout(() => {
+                if (!sections.soundDiffuser.classList.contains('hidden')) {
+                  sttTextDisplay.textContent = transcript;
+                }
+              }, 250);
+            }
+          }
+        };
+
+        speechRecognition.onerror = (event) => {
+          console.error('Speech recognition error', event.error);
+          if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            alert('請允許麥克風權限以使用語音辨識功能。');
+            stopRecognition();
+          }
+        };
+
+        speechRecognition.onend = () => {
+          if (recognitionActive) {
+            setTimeout(() => {
+              if (recognitionActive && speechRecognition) {
+                try { speechRecognition.start(); } catch {}
+              }
+            }, 300);
+          }
+        };
+
+        speechRecognition.start();
+        isSpeechRecognitionActive = true;
+        startRecognitionButton.disabled = false;
+
+        javascriptNode.onaudioprocess = () => {
+          if (!recognitionActive) return;
+          const now = Date.now();
+
+          const array = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(array);
+
+          let lowSum = 0, midSum = 0, highSum = 0;
+          const lowFreqRange = Math.floor(array.length * 0.2);
+          const midFreqRange = Math.floor(array.length * 0.5);
+
+          for (let i = 0; i < array.length; i++) {
+            if (i < lowFreqRange) lowSum += array[i];
+            else if (i < midFreqRange) midSum += array[i];
+            else highSum += array[i];
+          }
+          const lowAverage = lowSum / lowFreqRange;
+          const midAverage = midSum / (midFreqRange - lowFreqRange);
+          const highAverage = highSum / (array.length - midFreqRange);
+          const overallAverage = (lowAverage + midAverage + highAverage) / 3;
+
+          const epsilon = 1e-10;
+          let geoMeanLogSum = 0, arithMeanSum = 0;
+          const len = array.length;
+          for (let i = 0; i < len; i++) {
+            geoMeanLogSum += Math.log(array[i] + epsilon);
+            arithMeanSum += array[i];
+          }
+          const geoMean = Math.exp(geoMeanLogSum / len);
+          const arithMean = arithMeanSum / len;
+          const spectralFlatness = geoMean / (arithMean + epsilon);
+
+          const alarmLoudnessThreshold = 90;
+          const crowdedLoudnessThreshold = 70;
+          const crowdedMidThreshold = 40;
+          const sereneLoudnessThreshold = 15;
+          const musicHighFreqThreshold = 10;
+          const flatnessThreshold = 0.5;
+
+          let finalHue, finalSaturation, finalLightness, alertText;
+
+          if (overallAverage > alarmLoudnessThreshold) {
+            finalHue = 0;
+            finalSaturation = 100;
+            finalLightness = 50;
+            alertText = '警號';
+          } else if (
+            highAverage > musicHighFreqThreshold &&
+            overallAverage > crowdedLoudnessThreshold &&
+            spectralFlatness < flatnessThreshold
+          ) {
+            const normalizedHigh = Math.min(highAverage / 255, 1);
+            finalHue = 0 + normalizedHigh * 60;
+            finalSaturation = 90;
+            finalLightness = 50;
+            alertText = '嘈雜';
+          } else if (
+            midAverage > crowdedMidThreshold &&
+            overallAverage > crowdedLoudnessThreshold &&
+            spectralFlatness < flatnessThreshold
+          ) {
+            finalHue = 60;
+            finalSaturation = 100;
+            finalLightness = 50;
+            alertText = '吵鬧';
+          } else if (overallAverage > sereneLoudnessThreshold * 3) {
+            const normalizedMid = Math.min(midAverage / 255, 1);
+            finalHue = 60 + normalizedMid * 60;
+            finalSaturation = 70;
+            finalLightness = 50;
+            alertText = '普通';
+          } else if (overallAverage > sereneLoudnessThreshold) {
+            finalHue = 120;
+            finalSaturation = 70;
+            finalLightness = 50;
+            alertText = '正常';
+          } else if (overallAverage < sereneLoudnessThreshold) {
+            finalHue = 200 + (1 - lowAverage / 255) * 40;
+            finalSaturation = 70;
+            finalLightness = 60;
+            alertText = '安靜';
+          } else {
+            const normalizedLow = Math.min(lowAverage / 255, 1);
+            finalHue = 200 + (1 - normalizedLow) * 40;
+            finalSaturation = 70;
+            finalLightness = 60;
+            alertText = '安靜';
+          }
+
+          // Circular hue smoothing:
+          const finalHueRad = finalHue * Math.PI / 180;
+          const newX = Math.cos(finalHueRad);
+          const newY = Math.sin(finalHueRad);
+
+          smoothX += smoothingAlpha * (newX - smoothX);
+          smoothY += smoothingAlpha * (newY - smoothY);
+          smoothSaturation += smoothingAlpha * (finalSaturation - smoothSaturation);
+          smoothLightness += smoothingAlpha * (finalLightness - smoothLightness);
+
+          let smoothHueRad = Math.atan2(smoothY, smoothX);
+          if (smoothHueRad < 0) smoothHueRad += 2 * Math.PI;
+          const smoothHueDeg = smoothHueRad * 180 / Math.PI;
+
+          if (now - lastColorUpdate > uiUpdateThrottleMs_BG) {
+            const lighterColor = lightenHsl(smoothHueDeg, smoothSaturation, smoothLightness, 20);
+            const baseColor = `hsl(${smoothHueDeg.toFixed(1)}, ${smoothSaturation.toFixed(1)}%, ${smoothLightness.toFixed(1)}%)`;
+            document.body.style.background = `linear-gradient(180deg, ${lighterColor} 0%, ${baseColor} 100%)`;
+            colorDisplay.textContent = baseColor;
+            colorDisplay.style.fontWeight = 'normal';
+            lastColorUpdate = now;
+          }
+
+          if (!sections.soundDiffuser.classList.contains('hidden') &&
+              (now - lastTextUpdate > uiUpdateThrottleMs_Text)) {
+            hintTextDisplay.textContent = alertText;
+            lastTextUpdate = now;
+          }
+        };
+      } catch (err) {
+        console.error('錯誤：', err);
+        alert('無法啟動音訊設備，請檢查權限與設備。');
+        startRecognitionButton.disabled = false;
+        startRecognitionButton.textContent = '開始聲音識別';
+      }
+    }
+
+    startRecognitionButton.addEventListener('click', () => {
+      if (recognitionActive) {
+        stopRecognition();
+      } else {
+        startRecognition();
+      }
+    });
+
+    // ========== Alert Voice Broadcast ==========
+
+    const alertButton = document.getElementById('btnTestEmergencyAlert');
+    const btnPlayAlertTTS = document.getElementById('btnPlayAlertTTS');
+    const alertTTSInput = document.getElementById('alertTTSInput');
+
+    alertButton.addEventListener('click', () => {
+      alertButton.classList.add('flashing');
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+        oscillator.stop(audioCtx.currentTime + 2);
+
+        oscillator.onended = () => {
+          audioCtx.close();
+          alertButton.classList.remove('flashing');
+        };
+      } catch {
+        alert("您的瀏覽器不支援音訊播放");
+        alertButton.classList.remove('flashing');
+      }
+    });
+
+    btnPlayAlertTTS.addEventListener('click', () => {
+      const text = alertTTSInput.value.trim();
+      if (!text) {
+        alert('請輸入警報語音內容');
+        return;
+      }
+      if (!window.speechSynthesis) {
+        alert('抱歉，您的瀏覽器不支援語音合成功能。');
         return;
       }
 
-      speechRecognition = new SpeechRecognition();
-      speechRecognition.lang = 'zh-HK';
-      speechRecognition.interimResults = false;
-      speechRecognition.continuous = true;
+      window.speechSynthesis.cancel();
 
-      speechRecognition.onresult = (event) => {
-        const lastResult = event.results[event.results.length - 1];
-        if (lastResult.isFinal) {
-          const transcript = lastResult[0].transcript.trim();
-          if (transcript !== lastSttText) {
-            lastSttText = transcript;
-            if (sttDebounceTimer) clearTimeout(sttDebounceTimer);
-            sttDebounceTimer = setTimeout(() => {
-              if (!sections.soundDiffuser.classList.contains('hidden')) {
-                sttTextDisplay.textContent = transcript;
-              }
-            }, 250);
-          }
-        }
-      };
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-HK'; // Cantonese
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.volume = 1;
 
-      speechRecognition.onerror = (event) => {
-        console.error('Speech recognition error', event.error);
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-          alert('請允許麥克風權限以使用語音辨識功能。');
-          stopRecognition();
-        }
-      };
+      window.speechSynthesis.speak(utterance);
+    });
 
-      speechRecognition.onend = () => {
-        if (recognitionActive) {
-          setTimeout(() => {
-            if (recognitionActive && speechRecognition) {
-              try { speechRecognition.start(); } catch {}
-            }
-          }, 300);
-        }
-      };
+    // ========== Emergency Message ==========
+    const emergencyEmailInput = document.getElementById('emergencyEmailInput');
+    const emergencyMessageInput = document.getElementById('emergencyMessageInput');
+    const btnSendEmergencyText = document.getElementById('btnSendEmergencyText');
+    const emergencyEmailStatus = document.getElementById('emergencyEmailStatus');
 
-      speechRecognition.start();
-      isSpeechRecognitionActive = true;
-      startRecognitionButton.disabled = false;
-
-      javascriptNode.onaudioprocess = () => {
-        if (!recognitionActive) return;
-        const now = Date.now();
-
-        const array = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(array);
-
-        let lowSum = 0, midSum = 0, highSum = 0;
-        const lowFreqRange = Math.floor(array.length * 0.2);
-        const midFreqRange = Math.floor(array.length * 0.5);
-
-        for (let i = 0; i < array.length; i++) {
-          if (i < lowFreqRange) lowSum += array[i];
-          else if (i < midFreqRange) midSum += array[i];
-          else highSum += array[i];
-        }
-        const lowAverage = lowSum / lowFreqRange;
-        const midAverage = midSum / (midFreqRange - lowFreqRange);
-        const highAverage = highSum / (array.length - midFreqRange);
-        const overallAverage = (lowAverage + midAverage + highAverage) / 3;
-
-        const epsilon = 1e-10;
-        let geoMeanLogSum = 0, arithMeanSum = 0;
-        const len = array.length;
-        for (let i = 0; i < len; i++) {
-          geoMeanLogSum += Math.log(array[i] + epsilon);
-          arithMeanSum += array[i];
-        }
-        const geoMean = Math.exp(geoMeanLogSum / len);
-        const arithMean = arithMeanSum / len;
-        const spectralFlatness = geoMean / (arithMean + epsilon);
-
-        const alarmLoudnessThreshold = 90;
-        const crowdedLoudnessThreshold = 70;
-        const crowdedMidThreshold = 40;
-        const sereneLoudnessThreshold = 15;
-        const musicHighFreqThreshold = 10;
-        const flatnessThreshold = 0.5;
-
-        let finalHue, finalSaturation, finalLightness, alertText;
-
-        if (overallAverage > alarmLoudnessThreshold) {
-          finalHue = 0;
-          finalSaturation = 100;
-          finalLightness = 50;
-          alertText = '警號';
-        } else if (
-          highAverage > musicHighFreqThreshold &&
-          overallAverage > crowdedLoudnessThreshold &&
-          spectralFlatness < flatnessThreshold
-        ) {
-          const normalizedHigh = Math.min(highAverage / 255, 1);
-          finalHue = 0 + normalizedHigh * 60;
-          finalSaturation = 90;
-          finalLightness = 50;
-          alertText = '嘈雜';
-        } else if (
-          midAverage > crowdedMidThreshold &&
-          overallAverage > crowdedLoudnessThreshold &&
-          spectralFlatness < flatnessThreshold
-        ) {
-          finalHue = 60;
-          finalSaturation = 100;
-          finalLightness = 50;
-          alertText = '吵鬧';
-        } else if (overallAverage > sereneLoudnessThreshold * 3) {
-          const normalizedMid = Math.min(midAverage / 255, 1);
-          finalHue = 60 + normalizedMid * 60;
-          finalSaturation = 70;
-          finalLightness = 50;
-          alertText = '普通';
-        } else if (overallAverage > sereneLoudnessThreshold) {
-          finalHue = 120;
-          finalSaturation = 70;
-          finalLightness = 50;
-          alertText = '正常';
-        } else if (overallAverage < sereneLoudnessThreshold) {
-          finalHue = 200 + (1 - lowAverage / 255) * 40;
-          finalSaturation = 70;
-          finalLightness = 60;
-          alertText = '安靜';
-        } else {
-          const normalizedLow = Math.min(lowAverage / 255, 1);
-          finalHue = 200 + (1 - normalizedLow) * 40;
-          finalSaturation = 70;
-          finalLightness = 60;
-          alertText = '安靜';
-        }
-
-        // Circular hue smoothing:
-        const finalHueRad = finalHue * Math.PI / 180;
-        const newX = Math.cos(finalHueRad);
-        const newY = Math.sin(finalHueRad);
-
-        smoothX += smoothingAlpha * (newX - smoothX);
-        smoothY += smoothingAlpha * (newY - smoothY);
-        smoothSaturation += smoothingAlpha * (finalSaturation - smoothSaturation);
-        smoothLightness += smoothingAlpha * (finalLightness - smoothLightness);
-
-        let smoothHueRad = Math.atan2(smoothY, smoothX);
-        if (smoothHueRad < 0) smoothHueRad += 2 * Math.PI;
-        const smoothHueDeg = smoothHueRad * 180 / Math.PI;
-
-        if (now - lastColorUpdate > uiUpdateThrottleMs_BG) {
-          const lighterColor = lightenHsl(smoothHueDeg, smoothSaturation, smoothLightness, 20);
-          const baseColor = `hsl(${smoothHueDeg.toFixed(1)}, ${smoothSaturation.toFixed(1)}%, ${smoothLightness.toFixed(1)}%)`;
-          document.body.style.background = `linear-gradient(180deg, ${lighterColor} 0%, ${baseColor} 100%)`;
-          colorDisplay.textContent = baseColor;
-          colorDisplay.style.fontWeight = 'normal';
-          lastColorUpdate = now;
-        }
-
-        if (!sections.soundDiffuser.classList.contains('hidden') &&
-            (now - lastTextUpdate > uiUpdateThrottleMs_Text)) {
-          hintTextDisplay.textContent = alertText;
-          lastTextUpdate = now;
-        }
-      };
-    } catch (err) {
-      console.error('錯誤：', err);
-      alert('無法啟動音訊設備，請檢查權限與設備。');
-      startRecognitionButton.disabled = false;
-      startRecognitionButton.textContent = '開始聲音識別';
-    }
-  }
-
-  startRecognitionButton.addEventListener('click', () => {
-    if (recognitionActive) {
-      stopRecognition();
-    } else {
-      startRecognition();
-    }
-  });
-
-  // === Alert Voice Broadcast ===
-  const alertButton = document.getElementById('btnTestEmergencyAlert');
-  const btnPlayAlertTTS = document.getElementById('btnPlayAlertTTS');
-  const alertTTSInput = document.getElementById('alertTTSInput');
-
-  alertButton.addEventListener('click', () => {
-    alertButton.classList.add('flashing');
-    try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-      gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      oscillator.start();
-
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
-      oscillator.stop(audioCtx.currentTime + 2);
-
-      oscillator.onended = () => {
-        audioCtx.close();
-        alertButton.classList.remove('flashing');
-      };
-    } catch {
-      alert("您的瀏覽器不支援音訊播放");
-      alertButton.classList.remove('flashing');
-    }
-  });
-
-  btnPlayAlertTTS.addEventListener('click', () => {
-    const text = alertTTSInput.value.trim();
-    if (!text) {
-      alert('請輸入警報語音內容');
-      return;
-    }
-    if (!window.speechSynthesis) {
-      alert('抱歉，您的瀏覽器不支援語音合成功能。');
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-HK'; // Cantonese
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-
-    window.speechSynthesis.speak(utterance);
-  });
-
-  // === Emergency Text ===
-  const emergencyEmailInput = document.getElementById('emergencyEmailInput');
-  const emergencyMessageInput = document.getElementById('emergencyMessageInput');
-  const btnSendEmergencyText = document.getElementById('btnSendEmergencyText');
-  const emergencyEmailStatus = document.getElementById('emergencyEmailStatus');
-
-  function composeEmergencyEmail(message) {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('zh-HK', { year:'numeric', month:'2-digit', day:'2-digit' });
-    return `
+    function composeEmergencyEmail(message) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('zh-HK', { year:'numeric', month:'2-digit', day:'2-digit' });
+      return `
 親愛的用戶，
 
 此為您的緊急訊息：
@@ -639,134 +611,96 @@ ${message}
 
 此致，
 系統自動發送訊息
-    `.trim();
-  }
-
-  function looksLikePhoneNumber(str) {
-    return /^\+?[\d\s\-]{6,}$/.test(str);
-  }
-
-  btnSendEmergencyText.addEventListener('click', () => {
-    const recipient = emergencyEmailInput.value.trim();
-    const message = emergencyMessageInput.value.trim();
-    if (!recipient) {
-      alert('請輸入接收者電話號碼或電子郵件');
-      return;
-    }
-    if (!message) {
-      alert('請輸入緊急訊息內容');
-      return;
+      `.trim();
     }
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile && looksLikePhoneNumber(recipient)) {
-      const smsBody = encodeURIComponent(message);
-      const smsRecipient = recipient.replace(/\s+/g, '');
-      const smsLink = `sms:${smsRecipient}?body=${smsBody}`;
-      window.location.href = smsLink;
-      emergencyEmailStatus.textContent = "短信將在手機短信應用中打開";
-    } else {
-      const emailText = composeEmergencyEmail(message);
-      console.log(`Emergency message to: ${recipient}`);
-      console.log(emailText);
-      emergencyEmailStatus.textContent = "緊急訊息已成功“發送”（模擬）";
-      alert("緊急訊息已發送（模擬）。請檢查瀏覽器控制台。");
+    function looksLikePhoneNumber(str) {
+      return /^\+?[\d\s\-]{6,}$/.test(str);
     }
-  });
 
-  // Quick emergency messages buttons fill + send
-  document.querySelectorAll('#sectionEmergencyText button[data-msg]').forEach(button => {
-    button.addEventListener('click', () => {
-      emergencyMessageInput.value = button.getAttribute('data-msg');
-      btnSendEmergencyText.click();
+    btnSendEmergencyText.addEventListener('click', () => {
+      const recipient = emergencyEmailInput.value.trim();
+      const message = emergencyMessageInput.value.trim();
+      if (!recipient) {
+        alert('請輸入接收者電話號碼或電子郵件');
+        return;
+      }
+      if (!message) {
+        alert('請輸入緊急訊息內容');
+        return;
+      }
+
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile && looksLikePhoneNumber(recipient)) {
+        const smsBody = encodeURIComponent(message);
+        const smsRecipient = recipient.replace(/\s+/g, '');
+        const smsLink = `sms:${smsRecipient}?body=${smsBody}`;
+        window.location.href = smsLink;
+        emergencyEmailStatus.textContent = "短信將在手機短信應用中打開";
+      } else {
+        const emailText = composeEmergencyEmail(message);
+        console.log(`Emergency message to: ${recipient}`);
+        console.log(emailText);
+        emergencyEmailStatus.textContent = "緊急訊息已成功“發送”（模擬）";
+        alert("緊急訊息已發送（模擬）。請檢查瀏覽器控制台。");
+      }
     });
-  });
 
-  function clearEmergencyInput() {
-    emergencyEmailInput.value = '';
-    emergencyMessageInput.value = '';
-    emergencyEmailStatus.textContent = '';
-  }
+    // Handle stock message buttons (auto-fill + send)
+    document.querySelectorAll('#sectionEmergencyText button[data-msg]').forEach(button => {
+      button.addEventListener('click', () => {
+        emergencyMessageInput.value = button.getAttribute('data-msg');
+        btnSendEmergencyText.click();
+      });
+    });
 
-  // === Share Location with small fixed Leaflet map and popup upon permission ===
-  const btnShareCurrentLocation = document.getElementById('btnShareCurrentLocation');
-  const sharedLocationLink = document.getElementById('sharedLocationLink');
-  const btnSendLocationSms = document.getElementById('btnSendLocationSms');
-  let map = null, marker = null;
-
-  btnShareCurrentLocation.addEventListener('click', () => {
-    if (!navigator.geolocation) {
-      alert('您的瀏覽器不支援地理位置服務。');
-      return;
+    function clearEmergencyInput() {
+      emergencyEmailInput.value = '';
+      emergencyMessageInput.value = '';
+      emergencyEmailStatus.textContent = '';
     }
-    sharedLocationLink.textContent = '定位中...請稍候';
-    btnSendLocationSms.classList.add('hidden');
 
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        const latFixed = lat.toFixed(6);
-        const lonFixed = lon.toFixed(6);
-        const url = `https://maps.google.com/?q=${latFixed},${lonFixed}`;
-        sharedLocationLink.innerHTML = `位置共享連結:<br><a href="${url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline">${url}</a>`;
+    // ========== Location Sharing ==========
+    const btnShareCurrentLocation = document.getElementById('btnShareCurrentLocation');
+    const sharedLocationLink = document.getElementById('sharedLocationLink');
+    const btnSendLocationSms = document.getElementById('btnSendLocationSms');
 
-        // Initialize or update Leaflet map with interaction disabled
-        if (!map) {
-          map = L.map('locationMap', {
-          center: [lat, lon],
-          zoom: 14,
-          zoomControl: false,
-          dragging: false,
-          scrollWheelZoom: false,
-          doubleClickZoom: false,
-          boxZoom: false,
-          keyboard: false,
-          tap: false,
-          touchZoom: false,
-         });
+    btnShareCurrentLocation.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('您的瀏覽器不支援地理位置服務。');
+        return;
+      }
+      sharedLocationLink.textContent = '定位中...請稍候';
+      btnSendLocationSms.classList.add('hidden');
 
-         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap contributors',
-         }).addTo(map);
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lon = pos.coords.longitude.toFixed(6);
+          const url = `https://maps.google.com/?q=${lat},${lon}`;
+          sharedLocationLink.innerHTML = `位置共享連結:<br><a href="${url}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline">${url}</a>`;
 
-         marker = L.marker([lat, lon]).addTo(map);
-         marker.bindPopup('您的目前位置').openPopup();
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          if (isMobile) {
+            btnSendLocationSms.classList.remove('hidden');
+            btnSendLocationSms.onclick = () => {
+              const smsBody = encodeURIComponent(`我的位置：${url}`);
+              const smsLink = `sms:?body=${smsBody}`;
+              window.location.href = smsLink;
+            };
+          } else {
+            btnSendLocationSms.classList.add('hidden');
+          }
 
-          // This tells Leaflet to recalculate size and redraw
-         map.invalidateSize();
-         } else {
-           map.setView([lat, lon], 14);
-           marker.setLatLng([lat, lon]);
-           marker.openPopup();
-
-           map.invalidateSize();
-        }
-
-
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-          btnSendLocationSms.classList.remove('hidden');
-          btnSendLocationSms.onclick = () => {
-            const smsBody = encodeURIComponent(`我的位置：${url}`);
-            const smsLink = `sms:?body=${smsBody}`;
-            window.location.href = smsLink;
-          };
-        } else {
-          btnSendLocationSms.classList.add('hidden');
-        }
-
-        alert('位置已成功共享並顯示地圖！');
-      },
-      err => {
-        sharedLocationLink.textContent = '定位失敗: ' + err.message;
-        alert('無法取得位置權限或定位失敗。');
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  });
-
-</script>
+          alert('位置已成功共享！');
+        },
+        err => {
+          sharedLocationLink.textContent = '定位失敗: ' + err.message;
+          alert('無法取得位置權限或定位失敗。');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  </script>
 </body>
 </html>
