@@ -714,30 +714,36 @@ ${message}
         // Initialize or update Leaflet map with interaction disabled
         if (!map) {
           map = L.map('locationMap', {
-            center: [lat, lon],
-            zoom: 14,
-            zoomControl: false,
-            dragging: false,
-            scrollWheelZoom: false,
-            doubleClickZoom: false,
-            boxZoom: false,
-            keyboard: false,
-            tap: false,
-            touchZoom: false,
-          });
+          center: [lat, lon],
+          zoom: 14,
+          zoomControl: false,
+          dragging: false,
+          scrollWheelZoom: false,
+          doubleClickZoom: false,
+          boxZoom: false,
+          keyboard: false,
+          tap: false,
+          touchZoom: false,
+         });
 
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors',
-          }).addTo(map);
+         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors',
+         }).addTo(map);
 
-          marker = L.marker([lat, lon]).addTo(map);
-          marker.bindPopup('您的目前位置').openPopup();
-        } else {
-          map.setView([lat, lon], 14);
-          marker.setLatLng([lat, lon]);
-          marker.openPopup();
+         marker = L.marker([lat, lon]).addTo(map);
+         marker.bindPopup('您的目前位置').openPopup();
+
+          // This tells Leaflet to recalculate size and redraw
+         map.invalidateSize();
+         } else {
+           map.setView([lat, lon], 14);
+           marker.setLatLng([lat, lon]);
+           marker.openPopup();
+
+           map.invalidateSize();
         }
+
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isMobile) {
