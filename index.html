@@ -172,8 +172,8 @@
       <!-- Emergency Text Section -->
       <section id="sectionEmergencyText" class="hidden flex flex-col" aria-label="緊急訊息發送功能區">
         <h2 class="text-lg font-semibold mb-3 text-center">緊急訊息發送</h2>
-        <input id="emergencyEmailInput" type="text" placeholder="接收者電話號碼或電子郵件"
-          class="w-full rounded-md bg-gray-600 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3" aria-label="接收者電話或電子郵件" />
+        <input id="emergencyEmailInput" type="text" placeholder="請輸入接收者電話號碼"
+          class="w-full rounded-md bg-gray-600 p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3" aria-label="請輸入接收者電話號碼" />
         <textarea id="emergencyMessageInput" rows="6" placeholder="請輸入緊急訊息..."
           class="w-full rounded-md bg-gray-700 p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none mb-4"></textarea>
 
@@ -622,7 +622,7 @@ ${message}
       const recipient = emergencyEmailInput.value.trim();
       const message = emergencyMessageInput.value.trim();
       if (!recipient) {
-        alert('請輸入接收者電話號碼或電子郵件');
+        alert('請輸入接收者電話號碼');
         return;
       }
       if (!message) {
